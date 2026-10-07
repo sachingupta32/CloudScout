@@ -14,33 +14,53 @@ load_dotenv()
 SERPAPI_URL = "https://serpapi.com/search.json"
 
 # Each key is the name shown to the user. The patterns underneath it capture
-# common ways that skill appears in job descriptions and form input.
+# common aliases in job descriptions and form input.  This is intentionally a
+# transparent catalog: a skill is reported only when one of these rules finds
+# it in a description returned for the current search.
 SKILL_PATTERNS = {
+    # Programming
     "Python": (r"\bpython\b",),
-    "C": (r"(?<![A-Za-z0-9+#])c(?![A-Za-z0-9+#])",),
     "Java": (r"\bjava\b",),
-    "JavaScript": (r"\bjavascript\b",),
-    "Linux": (r"\blinux\b",),
-    "Git": (r"\bgit\b",),
-    "Docker": (r"\bdocker(?:\s+containers?)?\b",),
-    "Kubernetes": (r"\bkubernetes\b", r"\bk8s\b"),
+    "C": (r"(?<![A-Za-z0-9+#])c(?![A-Za-z0-9+#])",),
+    "C++": (r"\bc\s*\+\+(?!\w)", r"\bcpp\b"),
+    "JavaScript": (r"\bjavascript\b", r"\bjs\b"),
+    "TypeScript": (r"\btypescript\b", r"\bts\b"),
+    # Web
+    "HTML": (r"\bhtml(?:5)?\b",),
+    "CSS": (r"\bcss(?:3)?\b",),
+    "React": (r"\breact(?:\.js)?\b",),
+    "Node.js": (r"\bnode(?:\.js|js)?\b",),
+    "REST API": (r"\brest(?:ful)?\s+apis?\b", r"\brestful\b"),
+    # Data
+    "SQL": (r"\bsql\b", r"\bmysql\b", r"\bpostgres(?:ql)?\b"),
+    "Excel": (r"\b(?:microsoft )?excel\b", r"\bms excel\b"),
+    "Power BI": (r"\bpower\s*bi\b",),
+    "Tableau": (r"\btableau\b",),
+    "Pandas": (r"\bpandas\b",),
+    # Cloud
     "AWS": (r"\baws\b", r"\bamazon web services\b"),
     "Azure": (r"\bazure\b",),
     "Google Cloud": (r"\bgcp\b", r"\bgoogle cloud(?: platform)?\b"),
+    "Docker": (r"\bdocker(?:\s+containers?)?\b",),
+    "Kubernetes": (r"\bkubernetes\b", r"\bk8s\b"),
     "Terraform": (r"\bterraform\b",),
-    "Ansible": (r"\bansible\b",),
-    "SQL": (r"\bsql\b",),
-    "Networking": (r"\bnetworking\b", r"\bnetwork\s+engineering\b"),
-    "REST API": (r"\brest(?:ful)?\s+apis?\b",),
-    "CI/CD": (r"\bci\s*/\s*cd\b", r"\bcontinuous integration\b"),
+    # DevOps
+    "CI/CD": (r"\bci\s*/\s*cd\b", r"\bcontinuous integration\b", r"\bcontinuous delivery\b", r"\bcontinuous deployment\b"),
     "Jenkins": (r"\bjenkins\b",),
     "GitHub Actions": (r"\bgithub actions\b",),
+    "Ansible": (r"\bansible\b",),
+    "Linux": (r"\blinux\b",),
     "Bash": (r"\bbash\b", r"\bshell scripting\b"),
-    "Cloud Security": (r"\bcloud security\b",),
+    # Security
     "IAM": (r"\biam\b", r"\bidentity and access management\b"),
-    "VMware": (r"\bvmware\b",),
+    "Cloud Security": (r"\bcloud security\b",),
+    "Cybersecurity": (r"\bcyber\s*security\b", r"\bcybersecurity\b",),
+    "SIEM": (r"\bsiem\b", r"\bsecurity information and event management\b"),
+    # General
+    "Git": (r"\bgit\b",),
+    "GitHub": (r"\bgithub\b",),
+    "Networking": (r"\bnetworking\b", r"\bnetwork\s+engineering\b"),
     "Monitoring": (r"\bmonitoring\b",),
-    "Containers": (r"\bcontainers?\b",),
 }
 
 
@@ -76,9 +96,13 @@ def build_skill_analysis(jobs, current_skills):
     top_skills.sort(key=lambda item: (-item["count"], item["name"]))
 
     user_skill_set = extract_skills(current_skills)
-    # Show every recognized user skill, even if it is not mentioned in this
-    # particular batch of jobs. This keeps the profile input easy to verify.
-    owned_skills = [{"name": skill} for skill in sorted(user_skill_set)]
+    detected_skill_set = {skill["name"] for skill in top_skills}
+    # Keep every displayed insight tied to the live descriptions for this
+    # search, including the user's matched skills.
+    owned_skills = [
+        {"name": skill}
+        for skill in sorted(user_skill_set & detected_skill_set)
+    ]
     gaps = [skill for skill in top_skills if skill["name"] not in user_skill_set]
 
     for skill in gaps:
@@ -104,7 +128,7 @@ def build_skill_analysis(jobs, current_skills):
 
 
 def search_jobs(role, location):
-    """Request cloud jobs from SerpApi and return jobs plus an error message."""
+    """Request jobs for the submitted role from SerpApi."""
     api_key = os.getenv("SERPAPI_KEY")
     if not api_key:
         return [], "The SerpApi key is missing. Add SERPAPI_KEY to your local .env file."

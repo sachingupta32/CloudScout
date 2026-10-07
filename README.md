@@ -1,24 +1,24 @@
 # CloudScout
 
-CloudScout turns live cloud-job listings into a beginner-friendly career roadmap. Search for a role and location, add the skills you already have, and CloudScout shows the skills employers mention most, your likely skill gaps, and a practical learning order.
+CloudScout turns live technology-job listings into a beginner-friendly, role-aware career roadmap. Search for any role and location, add the skills you already have, and CloudScout shows the skills employers mention most in those returned descriptions, your likely skill gaps, and a practical learning order.
 
 ## The problem
 
-It is hard for aspiring cloud professionals to tell which skills are actually in demand. Job requirements change quickly, and reading listings one by one makes it difficult to see the bigger picture. CloudScout uses the current job market to make that information easier to understand.
+It is hard for technology professionals to tell which skills are actually in demand for their target role. Job requirements change quickly, and reading listings one by one makes it difficult to see the bigger picture. CloudScout uses the current job market to make that information easier to understand.
 
 ## How it works
 
 1. Enter a job role, location, and your current skills.
 2. CloudScout searches live Google Jobs data through SerpApi.
-3. It scans returned job descriptions using a transparent, rule-based cloud/IT skill catalog.
+3. It scans returned job descriptions using a transparent, rule-based technology skill catalog.
 4. It counts how often each skill appears, compares those skills with your input, and ranks missing skills by demand.
 
 ## Main features
 
-- Live cloud-job search by role and location.
+- Live technology-job search by free-form role and location.
 - Job cards with title, company, location, description, and job link when available.
 - Employer skill-demand counts and percentages with visual progress bars.
-- Recognizes common cloud and IT skills, including Python, Git, AWS, Azure, Google Cloud/GCP, Docker, Kubernetes, Terraform, SQL, and CI/CD.
+- Recognizes common programming, web, data, cloud, DevOps, security, and general technology skills, including Python, Java, JavaScript, React, SQL, Power BI, AWS, Docker, CI/CD, IAM, and GitHub.
 - Normalizes common naming variations such as `GCP` and `Google Cloud Platform`.
 - Shows skills you already have, complete skill gaps, and the top 10 learning priorities.
 - Responsive single-page interface for desktop and mobile.
@@ -81,7 +81,7 @@ Then open [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser.
 
 ## Example search
 
-- **Job role:** `Cloud Engineer`
+- **Job role:** `Cloud Engineer` (or `Python Developer`, `Data Analyst`, and other technology roles)
 - **Location:** `Bengaluru, Karnataka, India`
 - **Your current skills:** `Python, Git`
 

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CloudScout | Cloud Career Roadmap</title>
+    <title>CloudScout | Technology Career Roadmap</title>
     <style>
       :root { --ink:#13213b; --muted:#65738a; --line:#e3e9f2; --blue:#2563eb; --blue-dark:#194bb6; --green:#15803d; --green-bg:#ecfdf3; --amber:#b45309; --amber-bg:#fff7ed; }
       * { box-sizing:border-box; }
@@ -61,9 +61,9 @@
     <main class="page">
       <header class="hero">
         <div class="brand"><span class="brand-mark">☁</span> CloudScout</div>
-        <p class="eyebrow">Live cloud career intelligence</p>
-        <h1>Build your next cloud career move with confidence.</h1>
-        <p>Turn live job-market data into your cloud career roadmap.</p>
+        <p class="eyebrow">Live technology career intelligence</p>
+        <h1>Build your next technology career move with confidence.</h1>
+        <p>Turn live job-market data into a practical, role-aware career roadmap.</p>
       </header>
 
       <section class="search-card" aria-label="Job search">
@@ -88,19 +88,20 @@
               <div class="skill-list">{% for skill in analysis.top_skills %}<div class="skill-row"><span class="skill-name">{{ skill.name }}</span><div class="bar-track" aria-label="{{ skill.name }} appears in {{ skill.percentage }} percent of jobs"><div class="bar-fill" style="width: {{ skill.percentage }}%"></div></div><span class="skill-stat">{{ skill.count }} jobs · {{ skill.percentage }}%</span></div>{% endfor %}</div>
             </section>
             <section class="panel">
-              <p class="section-kicker">Live roles</p><h2>Cloud Engineer Jobs <span class="job-count">({{ jobs|length }})</span></h2>
+              <p class="section-kicker">Live roles</p><h2>{{ form_data.role }} Jobs <span class="job-count">({{ jobs|length }})</span></h2>
               <p class="section-intro">Results from your current Google Jobs search.</p>
               {% for job in jobs %}<article class="job-card"><h3>{{ job.title }}</h3><p class="job-meta"><strong>{{ job.company }}</strong> · {{ job.location }}</p>{% if job.description %}<p class="job-description">{{ job.description }}</p>{% else %}<p class="job-description">No description was provided for this listing.</p>{% endif %}{% if job.link %}<a class="button" href="{{ job.link }}" target="_blank" rel="noopener">View Job <span aria-hidden="true">↗</span></a>{% endif %}</article>{% endfor %}
             </section>
           </div>
           <aside class="side-column">
             <section class="panel">
-              <p class="section-kicker">Your profile</p><h2>Your Skill Gaps</h2>
-              {% if analysis.owned_skills %}<p class="section-intro">You already have these skills that appear in the jobs:</p><div class="chips">{% for skill in analysis.owned_skills %}<span class="chip">✓ {{ skill.name }}</span>{% endfor %}</div>{% endif %}
+              <p class="section-kicker">Your profile</p><h2>Your Existing Skills</h2>
+              {% if analysis.owned_skills %}<p class="section-intro">These entered skills were detected in the current job descriptions:</p><div class="chips">{% for skill in analysis.owned_skills %}<span class="chip">✓ {{ skill.name }}</span>{% endfor %}</div>{% else %}<p class="empty-copy">None of your recognized entered skills were detected in these current job descriptions.</p>{% endif %}
+              <h2 style="margin-top:24px">Your Skill Gaps</h2>
               {% if analysis.gaps %}<p class="section-intro">Build these next, ranked by employer demand:</p><ul class="gap-list">{% for skill in analysis.gaps %}<li class="gap-item"><div><strong>{{ skill.name }}</strong><span>{{ skill.count }} jobs mention this skill</span></div><span class="demand">{{ skill.percentage }}%</span></li>{% endfor %}</ul>{% else %}<p class="empty-copy">Nice work—none of the recognized skills in these jobs are missing from your input.</p>{% endif %}
             </section>
             <section class="panel">
-              <p class="section-kicker">Simple next steps</p><h2>Recommended Learning Order</h2><p class="section-intro">Start with the highest-demand skills first.</p>
+              <p class="section-kicker">Simple next steps</p><h2>Top 10 Recommended Learning Priorities</h2><p class="section-intro">Start with the highest-demand skills first.</p>
               {% if analysis.learning_order %}<p class="section-intro">Top 10 priorities based on current job demand.</p><ol class="roadmap">{% for skill in analysis.learning_order %}<li><strong>{{ skill.name }}</strong><span>{{ skill.demand_level }} · {{ skill.percentage }}% of current listings</span></li>{% endfor %}</ol>{% else %}<p class="empty-copy">No learning gaps were found from the recognized skills.</p>{% endif %}
             </section>
             <section class="powered"><strong>Powered by SerpApi</strong><br>These recommendations are based on live Google Jobs search data and update with each search.</section>
