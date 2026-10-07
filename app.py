@@ -1,0 +1,190 @@
+"""CloudScout Flask application entry point."""
+
+import os
+import re
+
+import requests
+from dotenv import load_dotenv
+from flask import Flask, render_template, request
+
+
+app = Flask(__name__)
+load_dotenv()
+
+SERPAPI_URL = "https://serpapi.com/search.json"
+
+# Each key is the name shown to the user. The patterns underneath it capture
+# common ways that skill appears in job descriptions and form input.
+SKILL_PATTERNS = {
+    "Python": (r"\bpython\b",),
+    "C": (r"(?<![A-Za-z0-9+#])c(?![A-Za-z0-9+#])",),
+    "Java": (r"\bjava\b",),
+    "JavaScript": (r"\bjavascript\b",),
+    "Linux": (r"\blinux\b",),
+    "Git": (r"\bgit\b",),
+    "Docker": (r"\bdocker(?:\s+containers?)?\b",),
+    "Kubernetes": (r"\bkubernetes\b", r"\bk8s\b"),
+    "AWS": (r"\baws\b", r"\bamazon web services\b"),
+    "Azure": (r"\bazure\b",),
+    "Google Cloud": (r"\bgcp\b", r"\bgoogle cloud(?: platform)?\b"),
+    "Terraform": (r"\bterraform\b",),
+    "Ansible": (r"\bansible\b",),
+    "SQL": (r"\bsql\b",),
+    "Networking": (r"\bnetworking\b", r"\bnetwork\s+engineering\b"),
+    "REST API": (r"\brest(?:ful)?\s+apis?\b",),
+    "CI/CD": (r"\bci\s*/\s*cd\b", r"\bcontinuous integration\b"),
+    "Jenkins": (r"\bjenkins\b",),
+    "GitHub Actions": (r"\bgithub actions\b",),
+    "Bash": (r"\bbash\b", r"\bshell scripting\b"),
+    "Cloud Security": (r"\bcloud security\b",),
+    "IAM": (r"\biam\b", r"\bidentity and access management\b"),
+    "VMware": (r"\bvmware\b",),
+    "Monitoring": (r"\bmonitoring\b",),
+    "Containers": (r"\bcontainers?\b",),
+}
+
+
+def extract_skills(text):
+    """Return canonical skill names found in a description or form input."""
+    text = text or ""
+    return {
+        skill
+        for skill, patterns in SKILL_PATTERNS.items()
+        if any(re.search(pattern, text, re.IGNORECASE) for pattern in patterns)
+    }
+
+
+def build_skill_analysis(jobs, current_skills):
+    """Count employer demand and compare it with the user's listed skills."""
+    total_jobs = len(jobs)
+    skill_counts = {skill: 0 for skill in SKILL_PATTERNS}
+
+    for job in jobs:
+        # A set ensures a skill is counted at most once for each job.
+        for skill in extract_skills(job.get("description")):
+            skill_counts[skill] += 1
+
+    top_skills = [
+        {
+            "name": skill,
+            "count": count,
+            "percentage": round((count / total_jobs) * 100) if total_jobs else 0,
+        }
+        for skill, count in skill_counts.items()
+        if count
+    ]
+    top_skills.sort(key=lambda item: (-item["count"], item["name"]))
+
+    user_skill_set = extract_skills(current_skills)
+    # Show every recognized user skill, even if it is not mentioned in this
+    # particular batch of jobs. This keeps the profile input easy to verify.
+    owned_skills = [{"name": skill} for skill in sorted(user_skill_set)]
+    gaps = [skill for skill in top_skills if skill["name"] not in user_skill_set]
+
+    for skill in gaps:
+        if skill["percentage"] >= 60:
+            skill["demand_level"] = "High demand"
+        elif skill["percentage"] >= 30:
+            skill["demand_level"] = "Medium demand"
+        else:
+            skill["demand_level"] = "Lower demand"
+
+    demand_order = {"High demand": 0, "Medium demand": 1, "Lower demand": 2}
+    learning_order = sorted(
+        gaps,
+        key=lambda item: (demand_order[item["demand_level"]], -item["count"], item["name"]),
+    )[:10]
+
+    return {
+        "top_skills": top_skills,
+        "owned_skills": owned_skills,
+        "gaps": gaps,
+        "learning_order": learning_order,
+    }
+
+
+def search_jobs(role, location):
+    """Request cloud jobs from SerpApi and return jobs plus an error message."""
+    api_key = os.getenv("SERPAPI_KEY")
+    if not api_key:
+        return [], "The SerpApi key is missing. Add SERPAPI_KEY to your local .env file."
+
+    try:
+        response = requests.get(
+            SERPAPI_URL,
+            params={
+                "engine": "google_jobs",
+                "q": role,
+                "location": location,
+                "api_key": api_key,
+            },
+            timeout=15,
+        )
+        response.raise_for_status()
+        data = response.json()
+    except requests.RequestException as exc:
+        # Log only the exception class. Request URLs can include the API key.
+        app.logger.warning("SerpApi request failed: %s", type(exc).__name__)
+        return [], "CloudScout could not reach SerpApi. Please try again shortly."
+    except ValueError as exc:
+        app.logger.warning("SerpApi returned invalid JSON: %s", type(exc).__name__)
+        return [], "SerpApi returned an unexpected response. Please try again."
+
+    if data.get("error"):
+        return [], "SerpApi could not complete the search. Check your API key and try again."
+
+    jobs = []
+    for job in data.get("jobs_results", []):
+        # Google Jobs can provide a share link or an application link, depending
+        # on the job source. Use whichever is available.
+        apply_options = job.get("apply_options", [])
+        application_link = apply_options[0].get("link") if apply_options else None
+        jobs.append(
+            {
+                "title": job.get("title", "Untitled role"),
+                "company": job.get("company_name", "Company not listed"),
+                "location": job.get("location", "Location not listed"),
+                "description": job.get("description"),
+                "link": job.get("share_link") or application_link,
+            }
+        )
+
+    return jobs, None
+
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+    """Show the job-search form and any matching jobs."""
+    jobs = []
+    error = None
+    searched = False
+    form_data = {"role": "", "location": "", "skills": ""}
+    analysis = None
+
+    if request.method == "POST":
+        searched = True
+        form_data = {
+            "role": request.form.get("role", "").strip(),
+            "location": request.form.get("location", "").strip(),
+            "skills": request.form.get("skills", "").strip(),
+        }
+        if not form_data["role"] or not form_data["location"]:
+            error = "Please enter both a job role and a location."
+        else:
+            jobs, error = search_jobs(form_data["role"], form_data["location"])
+            if not error and jobs:
+                analysis = build_skill_analysis(jobs, form_data["skills"])
+
+    return render_template(
+        "index.html",
+        jobs=jobs,
+        error=error,
+        searched=searched,
+        form_data=form_data,
+        analysis=analysis,
+    )
+
+
+if __name__ == "__main__":
+    # Keep one predictable local server process for the browser preview.
+    app.run(debug=True, use_reloader=False)

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CloudScout | Cloud Career Roadmap</title>
+    <style>
+      :root { --ink:#13213b; --muted:#65738a; --line:#e3e9f2; --blue:#2563eb; --blue-dark:#194bb6; --green:#15803d; --green-bg:#ecfdf3; --amber:#b45309; --amber-bg:#fff7ed; }
+      * { box-sizing:border-box; }
+      body { margin:0; background:#f6f8fc; color:var(--ink); font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+      .page { max-width:1200px; margin:0 auto; padding:28px 24px 64px; }
+      .hero { overflow:hidden; position:relative; padding:48px; border-radius:24px; color:#fff; background:linear-gradient(125deg,#10254c 0%,#17469e 52%,#0d9488 130%); box-shadow:0 18px 44px rgba(16,37,76,.22); }
+      .hero::after { position:absolute; right:-90px; bottom:-145px; width:360px; height:360px; border:50px solid rgba(255,255,255,.08); border-radius:50%; content:""; }
+      .brand { display:flex; align-items:center; gap:10px; font-weight:750; letter-spacing:.2px; }
+      .brand-mark { display:grid; place-items:center; width:32px; height:32px; border-radius:9px; background:#67e8f9; color:#0f2d58; font-size:18px; }
+      .eyebrow { margin:38px 0 12px; color:#9eeaf4; font-size:.78rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+      h1 { max-width:700px; margin:0; font-size:clamp(2.1rem,5vw,4.1rem); line-height:1.04; letter-spacing:-.045em; }
+      .hero p:not(.eyebrow) { max-width:600px; margin:18px 0 0; color:#dcecff; font-size:clamp(1rem,2vw,1.2rem); line-height:1.55; }
+      .search-card { position:relative; z-index:1; margin:-28px 28px 0; padding:24px; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:0 16px 32px rgba(23,51,93,.12); }
+      .search-heading { margin:0 0 18px; font-size:1rem; }
+      .search-form { display:grid; grid-template-columns:1.2fr 1.2fr 1.2fr auto; gap:14px; align-items:end; }
+      label { display:block; margin-bottom:7px; color:#3f4e66; font-size:.8rem; font-weight:750; }
+      input { width:100%; padding:12px 13px; border:1px solid #cbd6e5; border-radius:9px; outline:none; color:var(--ink); font:inherit; }
+      input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(37,99,235,.13); }
+      button,.button { display:inline-flex; align-items:center; justify-content:center; min-height:45px; padding:0 18px; border:0; border-radius:9px; background:var(--blue); color:#fff; font:inherit; font-weight:750; text-decoration:none; cursor:pointer; transition:.18s ease; }
+      button:hover,.button:hover { background:var(--blue-dark); transform:translateY(-1px); }
+      .message { margin:28px 0 0; padding:14px 16px; border-radius:10px; font-weight:600; }
+      .error { color:#b91c1c; background:#fff1f2; } .empty { color:#1d4ed8; background:#eaf5ff; }
+      .dashboard { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr); gap:24px; margin-top:38px; }
+      .main-column,.side-column { display:grid; gap:24px; align-content:start; }
+      .panel { padding:24px; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:0 6px 18px rgba(28,54,92,.045); }
+      .section-kicker { margin:0 0 6px; color:var(--blue); font-size:.75rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+      h2 { margin:0; font-size:1.25rem; letter-spacing:-.02em; }
+      .section-intro { margin:8px 0 22px; color:var(--muted); font-size:.93rem; line-height:1.5; }
+      .skill-list { display:grid; gap:16px; }
+      .skill-row { display:grid; grid-template-columns:minmax(105px,.75fr) minmax(120px,2fr) auto; gap:12px; align-items:center; }
+      .skill-name { font-weight:750; font-size:.94rem; }
+      .bar-track { height:9px; overflow:hidden; border-radius:20px; background:#e8eef7; }
+      .bar-fill { height:100%; min-width:4px; border-radius:inherit; background:linear-gradient(90deg,#2563eb,#38bdf8); }
+      .skill-stat { color:var(--muted); font-size:.78rem; text-align:right; white-space:nowrap; }
+      .chips { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 0; }
+      .chip { padding:7px 10px; border-radius:999px; background:var(--green-bg); color:var(--green); font-size:.82rem; font-weight:700; }
+      .gap-list,.roadmap { display:grid; gap:10px; margin:0; padding:0; list-style:none; }
+      .gap-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px; border:1px solid #fde5c2; border-radius:10px; background:#fffdfa; }
+      .gap-item strong { display:block; font-size:.92rem; } .gap-item span { color:var(--muted); font-size:.78rem; }
+      .demand { padding:5px 8px; border-radius:999px; color:var(--amber)!important; background:var(--amber-bg); font-size:.72rem!important; font-weight:800; white-space:nowrap; }
+      .roadmap { counter-reset:step; } .roadmap li { position:relative; min-height:48px; padding:4px 0 4px 55px; counter-increment:step; }
+      .roadmap li::before { position:absolute; left:0; top:0; display:grid; place-items:center; width:36px; height:36px; border-radius:50%; color:var(--blue); background:#e9f1ff; font-weight:800; content:counter(step); }
+      .roadmap strong { display:block; font-size:.93rem; } .roadmap span,.job-count { color:var(--muted); font-size:.82rem; }
+      .job-card { padding:20px 0; border-bottom:1px solid var(--line); } .job-card:last-child { padding-bottom:0; border-bottom:0; }
+      .job-card h3 { margin:0; font-size:1.05rem; letter-spacing:-.01em; } .job-meta { margin:8px 0 12px; color:var(--muted); font-size:.87rem; }
+      .job-description { display:-webkit-box; overflow:hidden; margin:0; color:#4b5b71; font-size:.88rem; line-height:1.55; -webkit-box-orient:vertical; -webkit-line-clamp:3; }
+      .job-card .button { min-height:36px; margin-top:14px; padding:0 13px; font-size:.82rem; }
+      .powered { padding:18px 20px; border-radius:14px; color:#36516e; background:#eaf5ff; font-size:.85rem; line-height:1.5; } .powered strong { color:#174a8e; }
+      .empty-copy { margin:0; color:var(--muted); font-size:.9rem; line-height:1.5; }
+      @media (max-width:900px) { .search-form { grid-template-columns:1fr 1fr; } .search-form button { grid-column:1 / -1; } .dashboard { grid-template-columns:1fr; } }
+      @media (max-width:600px) { .page { padding:14px 14px 40px; } .hero { padding:27px 24px 52px; border-radius:18px; } .eyebrow { margin-top:28px; } .search-card { margin:-25px 10px 0; padding:18px; } .search-form { grid-template-columns:1fr; } .search-form button { grid-column:auto; } .panel { padding:19px; } .skill-row { grid-template-columns:1fr auto; } .bar-track { grid-column:1 / -1; grid-row:2; } .skill-stat { grid-column:2; grid-row:1; } }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <div class="brand"><span class="brand-mark">☁</span> CloudScout</div>
+        <p class="eyebrow">Live cloud career intelligence</p>
+        <h1>Build your next cloud career move with confidence.</h1>
+        <p>Turn live job-market data into your cloud career roadmap.</p>
+      </header>
+
+      <section class="search-card" aria-label="Job search">
+        <h2 class="search-heading">Find roles and uncover the skills they need</h2>
+        <form class="search-form" method="post">
+          <div><label for="role">Job role</label><input id="role" name="role" type="text" placeholder="e.g. Cloud Engineer" value="{{ form_data.role }}" required></div>
+          <div><label for="location">Location</label><input id="location" name="location" type="text" placeholder="e.g. Bengaluru, India" value="{{ form_data.location }}" required></div>
+          <div><label for="skills">Your current skills</label><input id="skills" name="skills" type="text" placeholder="e.g. AWS, Python, Docker" value="{{ form_data.skills }}"></div>
+          <button type="submit">Search Jobs</button>
+        </form>
+      </section>
+
+      {% if error %}<p class="message error">{{ error }}</p>
+      {% elif searched and not jobs %}<p class="message empty">No jobs found for that role and location. Try a broader title or a nearby location.</p>{% endif %}
+
+      {% if analysis %}
+        <div class="dashboard">
+          <div class="main-column">
+            <section class="panel">
+              <p class="section-kicker">Market snapshot</p><h2>Top Skills Employers Want</h2>
+              <p class="section-intro">The most frequently mentioned skills across {{ jobs|length }} live job listings.</p>
+              <div class="skill-list">{% for skill in analysis.top_skills %}<div class="skill-row"><span class="skill-name">{{ skill.name }}</span><div class="bar-track" aria-label="{{ skill.name }} appears in {{ skill.percentage }} percent of jobs"><div class="bar-fill" style="width: {{ skill.percentage }}%"></div></div><span class="skill-stat">{{ skill.count }} jobs · {{ skill.percentage }}%</span></div>{% endfor %}</div>
+            </section>
+            <section class="panel">
+              <p class="section-kicker">Live roles</p><h2>Cloud Engineer Jobs <span class="job-count">({{ jobs|length }})</span></h2>
+              <p class="section-intro">Results from your current Google Jobs search.</p>
+              {% for job in jobs %}<article class="job-card"><h3>{{ job.title }}</h3><p class="job-meta"><strong>{{ job.company }}</strong> · {{ job.location }}</p>{% if job.description %}<p class="job-description">{{ job.description }}</p>{% else %}<p class="job-description">No description was provided for this listing.</p>{% endif %}{% if job.link %}<a class="button" href="{{ job.link }}" target="_blank" rel="noopener">View Job <span aria-hidden="true">↗</span></a>{% endif %}</article>{% endfor %}
+            </section>
+          </div>
+          <aside class="side-column">
+            <section class="panel">
+              <p class="section-kicker">Your profile</p><h2>Your Skill Gaps</h2>
+              {% if analysis.owned_skills %}<p class="section-intro">You already have these skills that appear in the jobs:</p><div class="chips">{% for skill in analysis.owned_skills %}<span class="chip">✓ {{ skill.name }}</span>{% endfor %}</div>{% endif %}
+              {% if analysis.gaps %}<p class="section-intro">Build these next, ranked by employer demand:</p><ul class="gap-list">{% for skill in analysis.gaps %}<li class="gap-item"><div><strong>{{ skill.name }}</strong><span>{{ skill.count }} jobs mention this skill</span></div><span class="demand">{{ skill.percentage }}%</span></li>{% endfor %}</ul>{% else %}<p class="empty-copy">Nice work—none of the recognized skills in these jobs are missing from your input.</p>{% endif %}
+            </section>
+            <section class="panel">
+              <p class="section-kicker">Simple next steps</p><h2>Recommended Learning Order</h2><p class="section-intro">Start with the highest-demand skills first.</p>
+              {% if analysis.learning_order %}<p class="section-intro">Top 10 priorities based on current job demand.</p><ol class="roadmap">{% for skill in analysis.learning_order %}<li><strong>{{ skill.name }}</strong><span>{{ skill.demand_level }} · {{ skill.percentage }}% of current listings</span></li>{% endfor %}</ol>{% else %}<p class="empty-copy">No learning gaps were found from the recognized skills.</p>{% endif %}
+            </section>
+            <section class="powered"><strong>Powered by SerpApi</strong><br>These recommendations are based on live Google Jobs search data and update with each search.</section>
+          </aside>
+        </div>
+      {% endif %}
+    </main>
+  </body>
+</html>
