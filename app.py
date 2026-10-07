@@ -127,6 +127,56 @@ def build_skill_analysis(jobs, current_skills):
     }
 
 
+def build_job_fit(jobs, analysis, experience_level):
+    """Build a transparent profile summary from the current job descriptions."""
+    frequent_skills = [
+        skill for skill in analysis["top_skills"] if skill["percentage"] >= 30
+    ]
+    owned_names = {skill["name"] for skill in analysis["owned_skills"]}
+
+    prior_experience_pattern = re.compile(
+        r"\b(?:\d+\s*(?:-|–|to)\s*\d+\+?\s*(?:years?|yrs?)|"
+        r"\d+\+?\s*(?:years?|yrs?)(?:\s+of)?\s+experience|"
+        r"minimum of \d+\s+(?:years?|yrs?)|prior experience)\b",
+        re.IGNORECASE,
+    )
+    entry_level_pattern = re.compile(
+        r"\b(?:entry[- ]level|freshers?|new grad(?:uate)?|recent grad(?:uate)?|"
+        r"graduate trainee|0\s*(?:-|–|to)\s*2\s+(?:years?|yrs?))\b",
+        re.IGNORECASE,
+    )
+    descriptions = [job.get("description") or "" for job in jobs]
+    prior_experience_count = sum(
+        bool(prior_experience_pattern.search(description))
+        for description in descriptions
+    )
+    entry_level_count = sum(
+        bool(entry_level_pattern.search(description))
+        for description in descriptions
+    )
+    majority = (len(jobs) + 1) // 2
+    if prior_experience_count >= majority:
+        experience_signal = "Many analyzed jobs mention prior experience."
+    elif entry_level_count >= majority:
+        experience_signal = (
+            "Most analyzed jobs mention entry-level or fresher-friendly language."
+        )
+    else:
+        experience_signal = "Experience requirements vary across the current results."
+
+    return {
+        "experience_level": experience_level,
+        "analyzed_jobs": len(jobs),
+        "strong_matches": [
+            skill for skill in frequent_skills if skill["name"] in owned_names
+        ],
+        "skill_gaps": [
+            skill for skill in frequent_skills if skill["name"] not in owned_names
+        ],
+        "experience_signal": experience_signal,
+    }
+
+
 def search_jobs(role, location):
     """Request jobs for the submitted role from SerpApi."""
     api_key = os.getenv("SERPAPI_KEY")
@@ -182,8 +232,15 @@ def index():
     jobs = []
     error = None
     searched = False
-    form_data = {"role": "", "location": "", "skills": ""}
+    form_data = {
+        "role": "",
+        "location": "",
+        "skills": "",
+        "experience_level": "Student",
+        "experience_details": "",
+    }
     analysis = None
+    job_fit = None
 
     if request.method == "POST":
         searched = True
@@ -191,13 +248,23 @@ def index():
             "role": request.form.get("role", "").strip(),
             "location": request.form.get("location", "").strip(),
             "skills": request.form.get("skills", "").strip(),
+            "experience_level": request.form.get("experience_level", "Student"),
+            "experience_details": request.form.get("experience_details", "").strip(),
         }
         if not form_data["role"] or not form_data["location"]:
             error = "Please enter both a job role and a location."
         else:
             jobs, error = search_jobs(form_data["role"], form_data["location"])
             if not error and jobs:
-                analysis = build_skill_analysis(jobs, form_data["skills"])
+                # Project text contributes only skills recognized by the same
+                # transparent catalog used for the current-skills field.
+                profile_text = "\n".join(
+                    (form_data["skills"], form_data["experience_details"])
+                )
+                analysis = build_skill_analysis(jobs, profile_text)
+                job_fit = build_job_fit(
+                    jobs, analysis, form_data["experience_level"]
+                )
 
     return render_template(
         "index.html",
@@ -206,6 +273,7 @@ def index():
         searched=searched,
         form_data=form_data,
         analysis=analysis,
+        job_fit=job_fit,
     )
 
 

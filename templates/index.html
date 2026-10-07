@@ -20,8 +20,11 @@
       .search-heading { margin:0 0 18px; font-size:1rem; }
       .search-form { display:grid; grid-template-columns:1.2fr 1.2fr 1.2fr auto; gap:14px; align-items:end; }
       label { display:block; margin-bottom:7px; color:#3f4e66; font-size:.8rem; font-weight:750; }
-      input { width:100%; padding:12px 13px; border:1px solid #cbd6e5; border-radius:9px; outline:none; color:var(--ink); font:inherit; }
-      input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(37,99,235,.13); }
+      input,select,textarea { width:100%; padding:12px 13px; border:1px solid #cbd6e5; border-radius:9px; outline:none; color:var(--ink); background:#fff; font:inherit; }
+      textarea { min-height:82px; resize:vertical; }
+      input:focus,select:focus,textarea:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(37,99,235,.13); }
+      .about-you { display:grid; grid-column:1 / -1; grid-template-columns:minmax(180px,.55fr) minmax(0,1.45fr); gap:14px; margin:0; padding:16px; border:1px solid var(--line); border-radius:12px; }
+      .about-you legend { padding:0 5px; color:var(--ink); font-size:.93rem; font-weight:800; }
       button,.button { display:inline-flex; align-items:center; justify-content:center; min-height:45px; padding:0 18px; border:0; border-radius:9px; background:var(--blue); color:#fff; font:inherit; font-weight:750; text-decoration:none; cursor:pointer; transition:.18s ease; }
       button:hover,.button:hover { background:var(--blue-dark); transform:translateY(-1px); }
       .message { margin:28px 0 0; padding:14px 16px; border-radius:10px; font-weight:600; }
@@ -54,7 +57,7 @@
       .powered { padding:18px 20px; border-radius:14px; color:#36516e; background:#eaf5ff; font-size:.85rem; line-height:1.5; } .powered strong { color:#174a8e; }
       .empty-copy { margin:0; color:var(--muted); font-size:.9rem; line-height:1.5; }
       @media (max-width:900px) { .search-form { grid-template-columns:1fr 1fr; } .search-form button { grid-column:1 / -1; } .dashboard { grid-template-columns:1fr; } }
-      @media (max-width:600px) { .page { padding:14px 14px 40px; } .hero { padding:27px 24px 52px; border-radius:18px; } .eyebrow { margin-top:28px; } .search-card { margin:-25px 10px 0; padding:18px; } .search-form { grid-template-columns:1fr; } .search-form button { grid-column:auto; } .panel { padding:19px; } .skill-row { grid-template-columns:1fr auto; } .bar-track { grid-column:1 / -1; grid-row:2; } .skill-stat { grid-column:2; grid-row:1; } }
+      @media (max-width:600px) { .page { padding:14px 14px 40px; } .hero { padding:27px 24px 52px; border-radius:18px; } .eyebrow { margin-top:28px; } .search-card { margin:-25px 10px 0; padding:18px; } .search-form,.about-you { grid-template-columns:1fr; } .search-form button { grid-column:auto; } .panel { padding:19px; } .skill-row { grid-template-columns:1fr auto; } .bar-track { grid-column:1 / -1; grid-row:2; } .skill-stat { grid-column:2; grid-row:1; } }
     </style>
   </head>
   <body>
@@ -73,6 +76,11 @@
           <div><label for="location">Location</label><input id="location" name="location" type="text" placeholder="e.g. Bengaluru, India" value="{{ form_data.location }}" required></div>
           <div><label for="skills">Your current skills</label><input id="skills" name="skills" type="text" placeholder="e.g. AWS, Python, Docker" value="{{ form_data.skills }}"></div>
           <button type="submit">Search Jobs</button>
+          <fieldset class="about-you">
+            <legend>About You</legend>
+            <div><label for="experience_level">Experience level</label><select id="experience_level" name="experience_level"><option{% if form_data.experience_level == 'Student' %} selected{% endif %}>Student</option><option{% if form_data.experience_level == 'Fresher' %} selected{% endif %}>Fresher</option><option{% if form_data.experience_level == '0–2 years' %} selected{% endif %}>0–2 years</option><option{% if form_data.experience_level == '2–5 years' %} selected{% endif %}>2–5 years</option><option{% if form_data.experience_level == '5+ years' %} selected{% endif %}>5+ years</option></select></div>
+            <div><label for="experience_details">Experience / Projects <span class="job-count">(optional)</span></label><textarea id="experience_details" name="experience_details" placeholder="e.g. Built a Flask app, completed a Python project, internship in web development...">{{ form_data.experience_details }}</textarea></div>
+          </fieldset>
         </form>
       </section>
 
@@ -99,6 +107,17 @@
               {% if analysis.owned_skills %}<p class="section-intro">These entered skills were detected in the current job descriptions:</p><div class="chips">{% for skill in analysis.owned_skills %}<span class="chip">✓ {{ skill.name }}</span>{% endfor %}</div>{% else %}<p class="empty-copy">None of your recognized entered skills were detected in these current job descriptions.</p>{% endif %}
               <h2 style="margin-top:24px">Your Skill Gaps</h2>
               {% if analysis.gaps %}<p class="section-intro">Build these next, ranked by employer demand:</p><ul class="gap-list">{% for skill in analysis.gaps %}<li class="gap-item"><div><strong>{{ skill.name }}</strong><span>{{ skill.count }} jobs mention this skill</span></div><span class="demand">{{ skill.percentage }}%</span></li>{% endfor %}</ul>{% else %}<p class="empty-copy">Nice work—none of the recognized skills in these jobs are missing from your input.</p>{% endif %}
+            </section>
+            <section class="panel">
+              <p class="section-kicker">Personalized context</p><h2>Your Job Fit</h2>
+              <p class="section-intro">Experience level: <strong>{{ job_fit.experience_level }}</strong> · {{ job_fit.analyzed_jobs }} live jobs analyzed</p>
+              <h3>Existing Skills</h3>
+              {% if analysis.owned_skills %}<div class="chips">{% for skill in analysis.owned_skills %}<span class="chip">✓ {{ skill.name }}</span>{% endfor %}</div>{% else %}<p class="empty-copy">No recognized profile skills were detected in this batch.</p>{% endif %}
+              <h3 style="margin-top:22px">Strong Matches</h3>
+              {% if job_fit.strong_matches %}<div class="chips">{% for skill in job_fit.strong_matches %}<span class="chip">✓ {{ skill.name }} · {{ skill.percentage }}%</span>{% endfor %}</div>{% else %}<p class="empty-copy">No frequently requested skills from your profile were detected in this batch.</p>{% endif %}
+              <h3 style="margin-top:22px">Skill Gaps</h3>
+              {% if job_fit.skill_gaps %}<ul class="gap-list">{% for skill in job_fit.skill_gaps %}<li class="gap-item"><div><strong>{{ skill.name }}</strong><span>{{ skill.count }} jobs mention this skill</span></div><span class="demand">{{ skill.percentage }}%</span></li>{% endfor %}</ul>{% else %}<p class="empty-copy">No frequently requested skill gaps were found.</p>{% endif %}
+              <h3 style="margin-top:22px">Experience Signal</h3><p class="section-intro">{{ job_fit.experience_signal }}</p>
             </section>
             <section class="panel">
               <p class="section-kicker">Simple next steps</p><h2>Top 10 Recommended Learning Priorities</h2><p class="section-intro">Start with the highest-demand skills first.</p>
