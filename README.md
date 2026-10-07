@@ -1,6 +1,9 @@
 # CloudScout
 
 CloudScout turns live technology-job listings into a beginner-friendly, role-aware career roadmap. Search for any role and location, add the skills you already have, and CloudScout shows the skills employers mention most in those returned descriptions, your likely skill gaps, and a practical learning order.
+## Demo
+
+Watch the CloudScout demo: [YouTube Demo](https://youtu.be/6cbIb74MF7k)
 
 ## The problem
 
